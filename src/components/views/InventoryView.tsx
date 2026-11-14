@@ -9,7 +9,9 @@ import {
   PlusCircle,
   RefreshCw,
   Info,
+  Check,
 } from "lucide-react";
+import { soundFx } from "@/lib/sound";
 
 interface InventoryViewProps {
   units: any[];
@@ -20,12 +22,22 @@ export function InventoryView({ units, onOpenQuickCapture }: InventoryViewProps)
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Restock Dropdown State
+  const [restockItemId, setRestockItemId] = useState("");
+  const [restockQty, setRestockQty] = useState("");
+  const [restockMsg, setRestockMsg] = useState("");
+  const [isRestocking, setIsRestocking] = useState(false);
+
   const fetchInventory = async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/inventory");
       if (res.ok) {
-        setData(await res.json());
+        const json = await res.json();
+        setData(json);
+        if (json.items?.length > 0 && !restockItemId) {
+          setRestockItemId(json.items[0].id);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -37,6 +49,37 @@ export function InventoryView({ units, onOpenQuickCapture }: InventoryViewProps)
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  const handleQuickRestock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!restockItemId || !restockQty || Number(restockQty) <= 0) return;
+    setIsRestocking(true);
+    try {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "record_movement",
+          inventory_item_id: restockItemId,
+          movement_type: "received",
+          quantity: Number(restockQty),
+          notes: "Replenished via Inventory quick restock dropdown",
+        }),
+      });
+      if (res.ok) {
+        soundFx.playMilestone();
+        soundFx.triggerConfetti();
+        setRestockMsg("Stock updated successfully!");
+        setRestockQty("");
+        fetchInventory();
+        setTimeout(() => setRestockMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRestocking(false);
+    }
+  };
 
   const items = data?.items || [];
   const movements = data?.movements || [];
@@ -106,6 +149,69 @@ export function InventoryView({ units, onOpenQuickCapture }: InventoryViewProps)
         <span>
           <strong>Valuation Disclosure:</strong> Broad stock value estimates (e.g. £2,000–£3,000 for newly arrived NFC cards) are treated as user-entered estimate snapshots until invoice unit costs are fully reconciled.
         </span>
+      </div>
+
+      {/* Restock Dropdown Option */}
+      <div className="p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-[#E98569]" />
+            <h3 className="font-heading font-bold text-sm text-[#252820]">
+              Quick Restock Tool (Add More Stock)
+            </h3>
+          </div>
+          {restockMsg && (
+            <span className="text-xs font-semibold text-[#769B83] flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" />
+              {restockMsg}
+            </span>
+          )}
+        </div>
+
+        <form onSubmit={handleQuickRestock} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex-1">
+            <label className="block text-[11px] font-semibold text-[#5E6454] mb-1">
+              Select Item to Restock
+            </label>
+            <select
+              value={restockItemId}
+              onChange={(e) => setRestockItemId(e.target.value)}
+              className="w-full px-3 py-2 bg-[#FCFAF6] border border-[#E8E2D5] rounded-xl text-xs font-semibold text-[#252820] focus:ring-2 focus:ring-[#E98569] focus:outline-hidden"
+            >
+              {items.map((item: any) => (
+                <option key={item.id} value={item.id}>
+                  {item.unit_name ? `[${item.unit_name}] ` : ""}{item.name} — Current: {item.quantity_on_hand} {item.unit}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="w-full sm:w-36">
+            <label className="block text-[11px] font-semibold text-[#5E6454] mb-1">
+              Quantity to Add
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="e.g. 50"
+              value={restockQty}
+              onChange={(e) => setRestockQty(e.target.value)}
+              className="w-full px-3 py-2 bg-[#FCFAF6] border border-[#E8E2D5] rounded-xl text-xs font-medium text-[#252820] focus:ring-2 focus:ring-[#E98569] focus:outline-hidden"
+              required
+            />
+          </div>
+
+          <div className="sm:self-end">
+            <button
+              type="submit"
+              disabled={isRestocking}
+              className="w-full sm:w-auto px-5 py-2.5 bg-[#E98569] hover:bg-[#E98569]/90 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>{isRestocking ? "Updating..." : "+ Add Stock"}</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Items List */}

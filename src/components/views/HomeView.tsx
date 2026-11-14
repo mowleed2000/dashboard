@@ -357,43 +357,60 @@ export function HomeView({
               <div
                 key={unit.id}
                 onClick={() => onSelectUnit(unit.id)}
-                className={`p-4 rounded-2xl bg-white border transition-all cursor-pointer hover:shadow-md hover:border-[#D5CCBA] flex flex-col justify-between ${
+                className={`group p-4 rounded-2xl bg-white border transition-all cursor-pointer hover:shadow-md hover:border-[#D5CCBA] flex flex-col justify-between ${
                   isQuiet
                     ? "border-[#E98569]/40 bg-[#FFF9F7]"
                     : "border-[#E8E2D5]"
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: unit.accent }}
-                      />
-                      <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          unit.status === "Active"
-                            ? "bg-[#769B83]/15 text-[#769B83]"
-                            : unit.status === "Paused"
-                            ? "bg-[#5E6454]/15 text-[#5E6454]"
-                            : "bg-[#7796C9]/15 text-[#7796C9]"
-                        }`}
-                      >
-                        {unit.status}
-                      </span>
+                  <div className="flex items-start gap-3 mb-2.5">
+                    {/* Business Logo Thumbnail */}
+                    <div className="w-11 h-11 rounded-xl border border-[#E8E2D5] bg-[#FCFAF6] overflow-hidden flex items-center justify-center p-1 shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      {unit.logo_asset_path ? (
+                        <img
+                          src={unit.logo_asset_path}
+                          alt={unit.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full rounded-lg flex items-center justify-center font-heading font-black text-xs text-white"
+                          style={{ backgroundColor: unit.accent }}
+                        >
+                          {unit.name.substring(0, 3).toUpperCase()}
+                        </div>
+                      )}
                     </div>
 
-                    {isQuiet && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E98569]/15 text-[#E98569] flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        Quiet
-                      </span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span
+                          className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            unit.status === "Active"
+                              ? "bg-[#769B83]/15 text-[#769B83]"
+                              : unit.status === "Paused"
+                              ? "bg-[#5E6454]/15 text-[#5E6454]"
+                              : "bg-[#7796C9]/15 text-[#7796C9]"
+                          }`}
+                        >
+                          {unit.status}
+                        </span>
+
+                        {isQuiet && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#E98569]/15 text-[#E98569] flex items-center gap-0.5">
+                            <AlertCircle className="w-2.5 h-2.5" />
+                            Quiet
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="font-heading font-bold text-sm text-[#252820] tracking-tight truncate group-hover:text-[#E98569] transition-colors">
+                        {unit.name}
+                      </h4>
+                    </div>
                   </div>
 
-                  <h4 className="font-heading font-bold text-sm text-[#252820] tracking-tight truncate">
-                    {unit.name}
-                  </h4>
                   <p className="text-[11px] text-[#5E6454] line-clamp-2 mt-0.5 leading-relaxed">
                     {unit.description}
                   </p>
@@ -430,10 +447,10 @@ export function HomeView({
         </div>
       </div>
 
-      {/* 5. Bottom Split: Today's Priorities & The Oracle / Aristotle Element */}
+      {/* 5. Bottom Split: Today's Priorities & The Prominent Aristotle Gucci Discipline Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Today's Priorities / Deliverables */}
-        <div className="lg:col-span-8 p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs">
+        <div className="lg:col-span-7 p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h3 className="font-heading font-bold text-sm text-[#252820] tracking-tight">
@@ -497,49 +514,62 @@ export function HomeView({
           </div>
         </div>
 
-        {/* The Oracle Module (Gucci Aristotle) */}
-        <div className="lg:col-span-4 p-5 rounded-2xl bg-[#FCFAF6] border border-[#E8E2D5] shadow-xs flex flex-col justify-between">
+        {/* The Oracle of Discipline (Gucci Aristotle) - Prominent Feature */}
+        <div className="lg:col-span-5 p-6 rounded-3xl bg-[#FCFAF6] border-2 border-[#E8BC57]/60 shadow-md flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#E8BC57]/10 rounded-full blur-2xl pointer-events-none" />
+
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#E8BC57]" />
-                <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-[#252820]">
-                  The Oracle
+                <span className="w-2.5 h-2.5 rounded-full bg-[#E8BC57]" />
+                <h3 className="font-heading font-extrabold text-xs uppercase tracking-wider text-[#252820]">
+                  The Oracle of Discipline
                 </h3>
               </div>
               <button
                 onClick={() =>
                   setOracleIndex((prev) => (prev + 1) % oracleQuotes.length)
                 }
-                className="text-[10px] font-medium text-[#5E6454] hover:text-[#252820] px-2 py-0.5 rounded-md bg-white border border-[#E8E2D5]"
+                className="text-[11px] font-semibold text-[#252820] hover:bg-[#E8BC57]/20 px-3 py-1 rounded-full bg-white border border-[#E8BC57]/40 shadow-2xs transition-colors flex items-center gap-1.5"
               >
-                Next Word
+                <Shuffle className="w-3 h-3 text-[#E8BC57]" />
+                <span>Next Counsel</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-3.5 my-2">
-              <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-[#E8BC57] shrink-0 shadow-xs bg-[#E8E2D5]">
-                {/* Served from public directory */}
+            {/* Prominent Aristotle Gucci Portrait & Maxims */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 my-2">
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-3 border-[#E8BC57] shrink-0 shadow-md bg-[#E8E2D5] group">
                 <img
                   src="/assets/dashboard/ARISTOLE GUCCI.jpg"
-                  alt="Gucci Aristotle"
-                  className="w-full h-full object-cover"
+                  alt="Aristotle Gucci"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-              </div>
-              <div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5E6454]">
+                <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/60 backdrop-blur-2xs text-[9px] font-bold text-center text-white uppercase tracking-wider">
                   Aristotle Gucci
+                </div>
+              </div>
+
+              <div className="flex-1 text-center sm:text-left">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8BC57] bg-[#E8BC57]/15 px-2 py-0.5 rounded-md">
+                  Founder Principle
                 </span>
-                <p className="font-editorial italic text-xs text-[#252820] mt-0.5 leading-snug">
+                <blockquote className="font-editorial italic text-sm sm:text-base text-[#252820] mt-2 leading-snug">
                   “{oracleQuotes[oracleIndex]}”
+                </blockquote>
+                <p className="text-[11px] font-medium text-[#5E6454] mt-2">
+                  Operating Standard • Relentless Field Execution
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#E8E2D5] text-[10px] text-[#5E6454] flex items-center justify-between">
-            <span>Executive Counsel</span>
-            <span className="text-[#E98569] font-medium">Keep moving</span>
+          <div className="mt-4 pt-3 border-t border-[#E8E2D5] text-[11px] text-[#5E6454] flex items-center justify-between">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-[#E8BC57]" />
+              Executive Discipline Anchor
+            </span>
+            <span className="text-[#E98569] font-bold">Another day, another dollar</span>
           </div>
         </div>
       </div>

@@ -221,7 +221,7 @@ function seedInitialData() {
       status: "Active",
       description: "NFC review cards and physical tap solutions. Field sales focus.",
       accent: "#E98569", // Coral
-      logo_asset_path: null,
+      logo_asset_path: "/assets/dashboard/collabcreate-nfc-logo.svg",
       logo_asset_alt_path: null,
       sort_order: 1
     },
@@ -317,7 +317,7 @@ function seedInitialData() {
       status: "Active",
       description: "Entrepreneurial reflections, case studies and operator publications.",
       accent: "#D7A17C", // Warm Clay
-      logo_asset_path: null,
+      logo_asset_path: "/assets/dashboard/substack-logo.svg",
       logo_asset_alt_path: null,
       sort_order: 9
     }
@@ -485,17 +485,17 @@ function seedInitialData() {
   `);
 
   insertTx.run({
-    id: "tx-nfc-sample-1",
+    id: "tx-nfc-15cards-260",
     portfolio_unit_id: "unit-nfc",
     type: "sale",
-    amount: 20.0,
+    amount: 260.0,
     currency: "GBP",
     occurred_at: todayStr,
     payment_status: "received",
     payment_method: "cash",
-    customer_label: "Walk-in Retail Client",
-    product_service: "NFC Review Cards",
-    notes: "Agreed to follow-up meeting about Website Package."
+    customer_label: "Retail & Hospitality Clients",
+    product_service: "15x NFC Review Cards",
+    notes: "Sold 15 NFC review cards for £260 received."
   });
 
   const insertInv = db.prepare(`
@@ -503,20 +503,82 @@ function seedInitialData() {
     VALUES (@id, @portfolio_unit_id, @name, @sku, @unit, @quantity_on_hand, @purchase_cost, @selling_price, @reorder_level, @supplier_name, @valuation_basis, @notes)
   `);
 
-  insertInv.run({
-    id: "inv-nfc-cards",
-    portfolio_unit_id: "unit-nfc",
-    name: "Standard Google Review NFC Cards",
-    sku: "NFC-REV-01",
-    unit: "cards",
-    quantity_on_hand: 250,
-    purchase_cost: 4.5,
-    selling_price: 20.0,
-    reorder_level: 50,
-    supplier_name: "Direct Manufacturer",
-    valuation_basis: "user_estimate",
-    notes: "New stock batch arrived. Stated snapshot estimate £2,000–£3,000 pending full unit cost reconciliation."
-  });
+  const nfcItems = [
+    {
+      id: "inv-nfc-google-stickers",
+      portfolio_unit_id: "unit-nfc",
+      name: "Google Stickers",
+      sku: "NFC-STK-GOOG",
+      unit: "stickers",
+      quantity_on_hand: 30,
+      purchase_cost: 3.0,
+      selling_price: 18.0,
+      reorder_level: 10,
+      supplier_name: "Direct NFC Supplier",
+      valuation_basis: "cost_value",
+      notes: "30 Google review tap stickers in stock"
+    },
+    {
+      id: "inv-nfc-premium-stickers",
+      portfolio_unit_id: "unit-nfc",
+      name: "Premium Stickers",
+      sku: "NFC-STK-PREM",
+      unit: "stickers",
+      quantity_on_hand: 5,
+      purchase_cost: 5.0,
+      selling_price: 25.0,
+      reorder_level: 5,
+      supplier_name: "Direct NFC Supplier",
+      valuation_basis: "cost_value",
+      notes: "5 luxury matte finish premium review stickers"
+    },
+    {
+      id: "inv-nfc-google-stands",
+      portfolio_unit_id: "unit-nfc",
+      name: "Google Stands",
+      sku: "NFC-STN-GOOG",
+      unit: "stands",
+      quantity_on_hand: 10,
+      purchase_cost: 7.0,
+      selling_price: 35.0,
+      reorder_level: 5,
+      supplier_name: "Direct NFC Supplier",
+      valuation_basis: "cost_value",
+      notes: "10 acrylic counter-top Google review tap stands"
+    },
+    {
+      id: "inv-nfc-instagram-stickers",
+      portfolio_unit_id: "unit-nfc",
+      name: "Instagram Stickers",
+      sku: "NFC-STK-INSTA",
+      unit: "stickers",
+      quantity_on_hand: 5,
+      purchase_cost: 3.0,
+      selling_price: 18.0,
+      reorder_level: 5,
+      supplier_name: "Direct NFC Supplier",
+      valuation_basis: "cost_value",
+      notes: "5 Instagram follow & review tap stickers"
+    },
+    {
+      id: "inv-nfc-table-tags",
+      portfolio_unit_id: "unit-nfc",
+      name: "Table Tags",
+      sku: "NFC-TAG-TBL",
+      unit: "table tags",
+      quantity_on_hand: 150,
+      purchase_cost: 1.5,
+      selling_price: 10.0,
+      reorder_level: 30,
+      supplier_name: "Direct NFC Supplier",
+      valuation_basis: "cost_value",
+      notes: "150 durable hospitality table review discs"
+    }
+  ];
+
+  for (const item of nfcItems) {
+    insertInv.run(item);
+  }
 
   const insertAct = db.prepare(`
     INSERT INTO activity_entries (id, portfolio_unit_id, activity_type, method, quantity, unit, occurred_at, notes, qualifies_for_pulse)

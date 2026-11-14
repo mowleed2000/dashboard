@@ -45,6 +45,8 @@ test_get("/assets/dashboard/ARISTOLE%20GUCCI.jpg", "Aristotle Gucci Image")
 test_get("/assets/dashboard/CCR%20OUR%20LOGO.png", "CCR Logo")
 test_get("/assets/dashboard/CollabCreateCall.png", "CollabCreateCall Logo")
 test_get("/assets/dashboard/logo%20website%20package.jpg", "Website Package Logo")
+test_get("/assets/dashboard/collabcreate-nfc-logo.svg", "CollabCreateNFC SVG Logo")
+test_get("/assets/dashboard/substack-logo.svg", "Substack SVG Logo")
 
 print("\n--- 3. Testing Portfolio & Inactivity Pulse ---")
 port_raw = test_get("/api/portfolio", "Portfolio Units API")
@@ -53,7 +55,7 @@ if port_raw:
     units = pdata.get("units", [])
     print(f"Total units returned: {len(units)}")
     for u in units:
-        print(f" - [{u['status']}] {u['name']}: MRR £{u['metrics']['mrr']}, Pulse: {u['metrics']['pulse_state']} ('{u['metrics']['pulse_message']}')")
+        print(f" - [{u['status']}] {u['name']} (Logo: {u.get('logo_asset_path')}): MRR £{u['metrics']['mrr']}, Pulse: {u['metrics']['pulse_state']}")
 
 print("\n--- 4. Testing Weather API ---")
 w_raw = test_get("/api/weather", "Live Weather Feed")
@@ -62,40 +64,42 @@ if w_raw:
     print(f"Weather: {wdata.get('temperature')}°C in {wdata.get('city')}, {wdata.get('condition')}")
     print(f"Cold Weather Advisory: '{wdata.get('advice')}' (Below 6°C alert: {wdata.get('is_cold_alert')})")
 
-print("\n--- 5. Testing Aggregate Outreach Capture (17 calls, 5 hours) ---")
-res_outreach = test_post("/api/activity", {
-    "portfolio_unit_id": "unit-web-pkg",
-    "activity_type": "outreach",
-    "method": "calls",
-    "quantity": 17,
-    "unit": "calls",
-    "notes": "17 cold calls completed without single contact logging",
-    "qualifies_for_pulse": True
-}, "Log Aggregate Outreach (17 calls)")
+print("\n--- 5. Testing NFC Inventory & Stock Representation ---")
+inv_raw = test_get("/api/inventory?unitId=unit-nfc", "NFC Inventory API")
+if inv_raw:
+    idata = json.loads(inv_raw.decode("utf-8"))
+    nfc_items = idata.get("items", [])
+    print(f"Found {len(nfc_items)} NFC Inventory lines:")
+    for item in nfc_items:
+        print(f" - {item['name']}: {item['quantity_on_hand']} {item['unit']} (Cost: £{item['purchase_cost']}, Retail: £{item['selling_price']})")
 
-print("\n--- 6. Testing Confirmed Sale Recording (£20 NFC Cards) ---")
-res_sale = test_post("/api/sales", {
-    "portfolio_unit_id": "unit-nfc",
-    "type": "sale",
-    "amount": 20.0,
-    "customer_label": "Automated Test Client",
-    "product_service": "NFC Review Cards",
-    "payment_method": "cash",
-    "payment_status": "received",
-    "notes": "Verified cash received transaction"
-}, "Record £20 Sale with Cash Settlement")
+print("\n--- 6. Testing Restock Dropdown Movement Action ---")
+if inv_raw:
+    first_item = idata.get("items", [])[0]
+    res_restock = test_post("/api/inventory", {
+        "action": "record_movement",
+        "inventory_item_id": first_item["id"],
+        "movement_type": "received",
+        "quantity": 10,
+        "notes": "Acceptance test replenishment"
+    }, f"Replenish 10x {first_item['name']}")
+    print(f"Restock result: {res_restock}")
 
-print("\n--- 7. Testing Sales Summary Reconciliation ---")
-s_raw = test_get("/api/sales", "Sales Summary API")
+print("\n--- 7. Testing Sales Summary Reconciliation (Including £260 15 Cards Sale) ---")
+s_raw = test_get("/api/sales?unitId=unit-nfc", "NFC Sales API")
 if s_raw:
     sdata = json.loads(s_raw.decode("utf-8"))
     summ = sdata.get("summary", {})
-    print(f"Reconciled Cash Received: £{summ.get('total_cash_received')}")
-    print(f"Active Contracted MRR: £{summ.get('active_mrr')}/mo ({summ.get('active_subscriptions_count')} active subscribers)")
+    print(f"NFC Reconciled Cash Received: £{summ.get('total_cash_received')}")
+    txs = sdata.get("transactions", [])
+    print(f"Total NFC transactions: {len(txs)}")
+    for t in txs:
+        print(f" - £{t['amount']} ({t['product_service']}) -> Status: {t['payment_status']}")
 
 print("\n--- 8. Testing CSV & AI Report Exports ---")
 test_get("/api/export?format=csv&type=sales", "Sales CSV Export")
 test_get("/api/export?format=csv&type=tasks", "Tasks CSV Export")
 test_get("/api/export?format=json", "AI Analysis JSON Dump")
+
 
 print("\nAll automated integration tests finished.")

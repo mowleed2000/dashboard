@@ -40,6 +40,12 @@ export function BusinessesView({
   const [loading, setLoading] = useState(false);
   const [statusUpdateMsg, setStatusUpdateMsg] = useState("");
 
+  // Quick Restock State
+  const [restockItemId, setRestockItemId] = useState("");
+  const [restockQty, setRestockQty] = useState("");
+  const [restockMsg, setRestockMsg] = useState("");
+  const [isRestocking, setIsRestocking] = useState(false);
+
   const currentUnit = units.find((u) => u.id === selectedUnitId) || null;
 
   const fetchUnitDetails = async (id: string) => {
@@ -57,18 +63,54 @@ export function BusinessesView({
       const activity = aRes.ok ? await aRes.json() : {};
       const inventory = iRes.ok ? await iRes.json() : {};
 
+      const items = inventory.items || [];
       setUnitData({
         sales: sales.transactions || [],
         recurring: sales.recurring_agreements || [],
         salesSummary: sales.summary || {},
         tasks: tasks.tasks || [],
         activities: activity.activities || [],
-        inventory: inventory.items || [],
+        inventory: items,
       });
+
+      if (items.length > 0) {
+        setRestockItemId(items[0].id);
+      }
     } catch (err) {
       console.error("Error fetching unit details:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!restockItemId || !restockQty || Number(restockQty) <= 0) return;
+    setIsRestocking(true);
+    try {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "record_movement",
+          inventory_item_id: restockItemId,
+          movement_type: "received",
+          quantity: Number(restockQty),
+          notes: "Quick stock replenishment via venture dashboard",
+        }),
+      });
+      if (res.ok) {
+        soundFx.playMilestone();
+        soundFx.triggerConfetti();
+        setRestockMsg("Stock added successfully!");
+        setRestockQty("");
+        if (currentUnit) fetchUnitDetails(currentUnit.id);
+        setTimeout(() => setRestockMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRestocking(false);
     }
   };
 
@@ -383,6 +425,101 @@ export function BusinessesView({
                     ))}
                   </div>
                 </div>
+
+                {/* Current Stock Representation & Restock Dropdown */}
+                {unitData?.inventory && unitData.inventory.length > 0 && (
+                  <div className="p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-[#E98569]" />
+                        <h3 className="font-heading font-bold text-sm text-[#252820]">
+                          Current Stock Inventory ({unitData.inventory.reduce((acc: number, i: any) => acc + (i.quantity_on_hand || 0), 0)} items)
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab("inventory")}
+                        className="text-xs font-semibold text-[#E98569] hover:underline"
+                      >
+                        Detailed inventory ledger →
+                      </button>
+                    </div>
+
+                    {/* Stock items breakdown */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {unitData.inventory.map((item: any) => (
+                        <div
+                          key={item.id}
+                          className="p-3.5 rounded-xl bg-[#FCFAF6] border border-[#E8E2D5] flex flex-col justify-between"
+                        >
+                          <span className="text-[11px] font-semibold text-[#5E6454] truncate" title={item.name}>
+                            {item.name}
+                          </span>
+                          <div className="mt-2 flex items-baseline gap-1">
+                            <span className="font-heading font-extrabold text-2xl text-[#252820]">
+                              {item.quantity_on_hand}
+                            </span>
+                            <span className="text-[10px] text-[#5E6454] uppercase font-medium">{item.unit}</span>
+                          </div>
+                          {item.reorder_level && item.quantity_on_hand <= item.reorder_level && (
+                            <span className="text-[9px] font-bold text-[#E98569] uppercase mt-1">
+                              Low stock
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Dropdown Restock Form */}
+                    <div className="pt-3 border-t border-[#E8E2D5]">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-[#252820]">
+                          Quick Restock (Add More Stock)
+                        </span>
+                        {restockMsg && (
+                          <span className="text-xs font-semibold text-[#769B83] flex items-center gap-1">
+                            <Check className="w-3.5 h-3.5" />
+                            {restockMsg}
+                          </span>
+                        )}
+                      </div>
+
+                      <form onSubmit={handleAddStock} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <select
+                          value={restockItemId}
+                          onChange={(e) => setRestockItemId(e.target.value)}
+                          className="flex-1 px-3 py-2 bg-[#FCFAF6] border border-[#E8E2D5] rounded-xl text-xs font-semibold text-[#252820] focus:ring-2 focus:ring-[#E98569] focus:outline-hidden"
+                        >
+                          {unitData.inventory.map((item: any) => (
+                            <option key={item.id} value={item.id}>
+                              {item.name} — Current: {item.quantity_on_hand} {item.unit}
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="w-full sm:w-36">
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Qty to add"
+                            value={restockQty}
+                            onChange={(e) => setRestockQty(e.target.value)}
+                            className="w-full px-3 py-2 bg-[#FCFAF6] border border-[#E8E2D5] rounded-xl text-xs font-medium text-[#252820] focus:ring-2 focus:ring-[#E98569] focus:outline-hidden"
+                            required
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={isRestocking}
+                          className="px-4 py-2 bg-[#E98569] hover:bg-[#E98569]/90 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" />
+                          <span>{isRestocking ? "Updating..." : "+ Add Stock"}</span>
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Sidebar stats */}
@@ -577,44 +714,114 @@ export function BusinessesView({
 
           {/* 5. INVENTORY */}
           {activeTab === "inventory" && (
-            <div className="p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-sm text-[#252820]">
-                  Inventory & Physical Assets
-                </h3>
+            <div className="p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E8E2D5]">
+                <div>
+                  <h3 className="font-heading font-bold text-base text-[#252820]">
+                    Inventory & Physical Assets ({unitData?.inventory?.length || 0} items)
+                  </h3>
+                  <p className="text-xs text-[#5E6454] mt-0.5">
+                    Track stock on hand, restock via the dropdown below, and log movements.
+                  </p>
+                </div>
                 <button
                   onClick={onOpenQuickCapture}
-                  className="text-xs font-semibold text-[#E98569] hover:underline"
+                  className="text-xs font-semibold text-[#E98569] hover:underline self-start sm:self-auto"
                 >
                   + Record Stock Movement
                 </button>
               </div>
+
+              {/* Quick Restock Dropdown Option */}
+              {unitData?.inventory && unitData.inventory.length > 0 && (
+                <div className="p-4 rounded-xl bg-[#FCFAF6] border border-[#E8E2D5] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#252820]">
+                      Add More Stock (Dropdown Replenishment)
+                    </span>
+                    {restockMsg && (
+                      <span className="text-xs font-semibold text-[#769B83] flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" />
+                        {restockMsg}
+                      </span>
+                    )}
+                  </div>
+
+                  <form onSubmit={handleAddStock} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <select
+                      value={restockItemId}
+                      onChange={(e) => setRestockItemId(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-white border border-[#E8E2D5] rounded-xl text-xs font-semibold text-[#252820] focus:ring-2 focus:ring-[#E98569] focus:outline-hidden"
+                    >
+                      {unitData.inventory.map((item: any) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} — Current: {item.quantity_on_hand} {item.unit}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="w-full sm:w-36">
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="Quantity to add"
+                        value={restockQty}
+                        onChange={(e) => setRestockQty(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-[#E8E2D5] rounded-xl text-xs font-medium text-[#252820] focus:ring-2 focus:ring-[#E98569] focus:outline-hidden"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isRestocking}
+                      className="px-4 py-2 bg-[#E98569] hover:bg-[#E98569]/90 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>{isRestocking ? "Updating..." : "+ Add Stock"}</span>
+                    </button>
+                  </form>
+                </div>
+              )}
 
               {unitData?.inventory?.length === 0 ? (
                 <p className="text-xs text-[#5E6454] py-4">
                   No inventory tracked for this unit.
                 </p>
               ) : (
-                unitData?.inventory?.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="p-4 rounded-xl bg-[#FCFAF6] border border-[#E8E2D5] space-y-2 text-xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-[#252820]">{item.name}</span>
-                      <span className="font-extrabold text-base text-[#252820]">
-                        {item.quantity_on_hand} {item.unit}
-                      </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {unitData?.inventory?.map((item: any) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-xl bg-[#FCFAF6] border border-[#E8E2D5] space-y-3 text-xs flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-[#252820]">{item.name}</span>
+                          <span className="font-extrabold text-base text-[#252820] px-2.5 py-0.5 rounded-lg bg-white border border-[#E8E2D5] shadow-2xs">
+                            {item.quantity_on_hand} {item.unit}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#5E6454] leading-relaxed mt-1">
+                          {item.notes}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#E8E2D5] flex items-center justify-between text-[11px] text-[#5E6454]">
+                        <span>Cost: £{item.purchase_cost} • Retail: £{item.selling_price}</span>
+                        <button
+                          onClick={() => {
+                            setRestockItemId(item.id);
+                            setRestockQty("10");
+                          }}
+                          className="text-[10px] font-bold text-[#E98569] hover:underline"
+                        >
+                          Select for Restock
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-[#5E6454] leading-relaxed">
-                      {item.notes}
-                    </p>
-                    <div className="flex items-center justify-between pt-2 border-t border-[#E8E2D5] text-[11px] text-[#5E6454]">
-                      <span>Basis: {item.valuation_basis.replace(/_/g, " ")}</span>
-                      <span>Unit Cost: £{item.purchase_cost} • Retail: £{item.selling_price}</span>
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           )}
