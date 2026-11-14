@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -20,9 +20,23 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#F6F1E8",
+};
+
 export const metadata: Metadata = {
   title: "Business Command — Portfolio Operating Environment",
   description: "Personal entrepreneurial headquarters for operating, tracking, and understanding a nine-venture portfolio.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Command",
+  },
 };
 
 export default function RootLayout({

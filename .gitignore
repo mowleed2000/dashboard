@@ -44,3 +44,8 @@ next-env.d.ts
 *.db-wal
 *.db-shm
 *.db-journal
+
+# binaries and tunnels
+*.exe
+cloudflared*
+

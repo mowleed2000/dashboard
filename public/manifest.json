@@ -1,0 +1,17 @@
+{
+  "name": "Business Command — Executive HQ",
+  "short_name": "Command",
+  "description": "Personal Operating Environment for 9-Venture Portfolio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F1E8",
+  "theme_color": "#F6F1E8",
+  "icons": [
+    {
+      "src": "/assets/dashboard/collabcreate-nfc-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
