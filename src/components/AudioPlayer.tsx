@@ -1,51 +1,31 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { Volume2, VolumeX, Play, Pause, Music } from "lucide-react";
+import { useAudio } from "@/context/AudioContext";
 
 export function AudioPlayer() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(0.4);
-  const [hasInteracted, setHasInteracted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Exact file path copied to public directory
-  const audioSrc = "/assets/dashboard/Rod Wave - LaCosa Nostra (Official Audio) - RodWave.mp3";
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-
-  const togglePlay = () => {
-    setHasInteracted(true);
-    if (!audioRef.current) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => console.warn("Audio playback prevented by browser:", err));
-    }
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
+  const { isPlaying, togglePlay, isMuted, toggleMute, volume, setVolume, track } = useAudio();
 
   return (
     <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#FCFAF6] border border-[#E8E2D5] text-[#252820] text-xs shadow-xs">
-      <audio ref={audioRef} src={audioSrc} loop preload="none" />
-      
+      {/* Rod Wave Album Art Thumbnail */}
+      <div className="relative w-6 h-6 rounded-md overflow-hidden shrink-0 border border-[#E8E2D5] bg-[#252820]">
+        <img
+          src={track.coverUrl}
+          alt={track.artist}
+          className="w-full h-full object-cover"
+        />
+        {isPlaying && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E98569] animate-ping" />
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center gap-1.5 font-medium text-[#5E6454]">
-        <Music className={`w-3.5 h-3.5 ${isPlaying ? "text-[#E98569] animate-pulse" : "text-[#5E6454]"}`} />
-        <span className="hidden md:inline truncate max-w-[130px]" title="Rod Wave - LaCosa Nostra">
-          Rod Wave — Soundtrack
+        <span className="hidden sm:inline truncate max-w-[140px]" title={`${track.artist} - ${track.title}`}>
+          {track.artist} • {track.title}
         </span>
       </div>
 
@@ -55,10 +35,14 @@ export function AudioPlayer() {
         title={isPlaying ? "Pause soundtrack" : "Play soundtrack"}
         aria-label={isPlaying ? "Pause soundtrack" : "Play soundtrack"}
       >
-        {isPlaying ? <Pause className="w-3.5 h-3.5 text-[#252820]" /> : <Play className="w-3.5 h-3.5 text-[#252820] fill-[#252820]" />}
+        {isPlaying ? (
+          <Pause className="w-3.5 h-3.5 text-[#252820]" />
+        ) : (
+          <Play className="w-3.5 h-3.5 text-[#252820] fill-[#252820]" />
+        )}
       </button>
 
-      <div className="flex items-center gap-1.5">
+      <div className="hidden md:flex items-center gap-1.5">
         <button
           onClick={toggleMute}
           className="p-1 rounded-full hover:bg-[#E8E2D5]/50 transition-colors focus:outline-hidden"
@@ -75,9 +59,8 @@ export function AudioPlayer() {
           value={isMuted ? 0 : volume}
           onChange={(e) => {
             setVolume(parseFloat(e.target.value));
-            if (isMuted) setIsMuted(false);
           }}
-          className="w-14 h-1 bg-[#E8E2D5] rounded-lg appearance-none cursor-pointer accent-[#E98569]"
+          className="w-12 h-1 bg-[#E8E2D5] rounded-lg appearance-none cursor-pointer accent-[#E98569]"
           title={`Volume: ${Math.round(volume * 100)}%`}
           aria-label="Soundtrack Volume"
         />
@@ -85,3 +68,4 @@ export function AudioPlayer() {
     </div>
   );
 }
+

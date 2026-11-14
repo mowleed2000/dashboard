@@ -18,8 +18,16 @@ import {
   RefreshCw,
   PhoneCall,
   Calendar,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Music,
+  RotateCcw,
+  RotateCw,
 } from "lucide-react";
 import { soundFx } from "@/lib/sound";
+import { useAudio } from "@/context/AudioContext";
 
 interface HomeViewProps {
   units: any[];
@@ -34,6 +42,26 @@ export function HomeView({
   onOpenQuickCapture,
   onNavigate,
 }: HomeViewProps) {
+  const {
+    isPlaying,
+    togglePlay,
+    currentTime,
+    duration,
+    seek,
+    volume,
+    setVolume,
+    isMuted,
+    toggleMute,
+    track,
+  } = useAudio();
+
+  const formatTime = (secs: number) => {
+    if (isNaN(secs) || secs < 0) return "0:00";
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
   const [weather, setWeather] = useState<any>(null);
   const [dailyQuote, setDailyQuote] = useState<any>(null);
   const [salesSummary, setSalesSummary] = useState<any>(null);
@@ -169,7 +197,217 @@ export function HomeView({
         </div>
       </div>
 
-      {/* 2. Top Banner Row: Weather Advisory & Daily Quote */}
+      {/* 2. TOP HERO: The Oracle of Discipline (Much Larger Aristotle) & Now Playing Music Deck (Rod Wave) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* The Oracle of Discipline (Gucci Aristotle) - Prominent & Much Larger */}
+        <div className="lg:col-span-7 p-6 rounded-3xl bg-[#FCFAF6] border-2 border-[#E8BC57]/80 shadow-md flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#E8BC57]/15 rounded-full blur-3xl pointer-events-none" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#E8BC57] animate-pulse" />
+                <h3 className="font-heading font-extrabold text-xs uppercase tracking-wider text-[#252820]">
+                  The Oracle of Discipline
+                </h3>
+              </div>
+              <button
+                onClick={() =>
+                  setOracleIndex((prev) => (prev + 1) % oracleQuotes.length)
+                }
+                className="text-[11px] font-semibold text-[#252820] hover:bg-[#E8BC57]/20 px-3.5 py-1.5 rounded-full bg-white border border-[#E8BC57]/40 shadow-2xs transition-all active:scale-95 flex items-center gap-1.5"
+                title="Shuffle founder counsel"
+              >
+                <Shuffle className="w-3 h-3 text-[#E8BC57]" />
+                <span>Next Counsel</span>
+              </button>
+            </div>
+
+            {/* Prominent, Much Larger Aristotle Gucci Portrait & Maxims */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 my-2">
+              <div className="relative w-44 h-44 sm:w-52 sm:h-52 md:w-56 md:h-56 rounded-3xl overflow-hidden border-4 border-[#E8BC57] shrink-0 shadow-xl bg-[#E8E2D5] group/img">
+                <img
+                  src="/assets/dashboard/ARISTOLE GUCCI.jpg"
+                  alt="Aristotle Gucci"
+                  className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-x-0 bottom-0 py-1.5 bg-black/70 backdrop-blur-xs text-[10px] font-bold text-center text-white uppercase tracking-wider border-t border-[#E8BC57]/40">
+                  Aristotle Gucci
+                </div>
+              </div>
+
+              <div className="flex-1 text-center sm:text-left pt-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8BC57] bg-[#E8BC57]/15 px-2.5 py-1 rounded-md">
+                  Founder Principle
+                </span>
+                <blockquote className="font-editorial italic text-base sm:text-lg md:text-xl text-[#252820] mt-3 leading-snug">
+                  “{oracleQuotes[oracleIndex]}”
+                </blockquote>
+                <p className="text-xs font-medium text-[#5E6454] mt-2.5">
+                  Operating Standard • Relentless Field Execution
+                </p>
+                <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2 text-[10px] font-semibold text-[#5E6454]">
+                  <span className="px-2.5 py-1 rounded-lg bg-white border border-[#E8E2D5] shadow-2xs">Mindset Anchor</span>
+                  <span className="px-2.5 py-1 rounded-lg bg-white border border-[#E8E2D5] shadow-2xs">Field Discipline</span>
+                  <span className="px-2.5 py-1 rounded-lg bg-white border border-[#E8E2D5] shadow-2xs">High Conviction</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 pt-3.5 border-t border-[#E8E2D5] text-[11px] text-[#5E6454] flex items-center justify-between">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-[#E8BC57]" />
+              Executive Discipline Anchor
+            </span>
+            <span className="text-[#E98569] font-bold tracking-tight">Another day, another dollar</span>
+          </div>
+        </div>
+
+        {/* Music Playing: Rod Wave Spotify-Style Music Platform UI */}
+        <div className="lg:col-span-5 p-6 rounded-3xl bg-[#1C1F18] text-white shadow-xl border border-[#2E3327] flex flex-col justify-between relative overflow-hidden group">
+          {/* Ambient Glow */}
+          <div className="absolute -top-16 -right-16 w-44 h-44 bg-[#E98569]/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-[#E8BC57]/15 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top Bar: Now Playing Status & Equalizer */}
+          <div className="flex items-center justify-between mb-4 z-10">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#E98569] px-2.5 py-0.5 rounded-md bg-[#E98569]/20 border border-[#E98569]/30">
+                Now Playing
+              </span>
+              {/* Equalizer animation */}
+              <div className="flex items-end gap-1 h-3.5">
+                <span className={`w-0.5 rounded-full bg-[#E98569] ${isPlaying ? "h-3 animate-pulse" : "h-1"}`} />
+                <span className={`w-0.5 rounded-full bg-[#E98569] ${isPlaying ? "h-3.5 animate-bounce" : "h-1.5"}`} />
+                <span className={`w-0.5 rounded-full bg-[#E98569] ${isPlaying ? "h-2 animate-pulse" : "h-1"}`} />
+                <span className={`w-0.5 rounded-full bg-[#E98569] ${isPlaying ? "h-3 animate-bounce" : "h-1.5"}`} />
+              </div>
+            </div>
+
+            <span className="text-[10px] font-mono text-white/50 tracking-wider">
+              SOUNDTRACK
+            </span>
+          </div>
+
+          {/* Center: Album Cover & Track Details */}
+          <div className="flex items-center gap-4 my-2 z-10">
+            {/* Rod Wave Album Art */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shrink-0 shadow-2xl border border-white/10 group-hover:scale-102 transition-transform duration-300 bg-[#252820]">
+              <img
+                src={track.coverUrl}
+                alt={track.artist}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h4 className="font-heading font-extrabold text-lg sm:text-xl text-white tracking-tight truncate">
+                {track.title}
+              </h4>
+              <p className="text-xs sm:text-sm font-semibold text-[#E8BC57] mt-0.5 truncate">
+                {track.artist}
+              </p>
+              <p className="text-[11px] text-white/50 mt-1 truncate">
+                {track.album}
+              </p>
+
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/15">
+                  HQ Audio
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#E98569]/20 text-[#E98569]">
+                  {isPlaying ? "Streaming" : "Ready"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Scrubber & Controls (Spotify Style) */}
+          <div className="mt-4 pt-3 border-t border-white/10 space-y-3 z-10">
+            {/* Progress Bar & Timestamps */}
+            <div>
+              <input
+                type="range"
+                min="0"
+                max={duration || 151}
+                step="1"
+                value={currentTime}
+                onChange={(e) => seek(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#E98569] hover:bg-white/25 transition-colors"
+                title={`Seek: ${formatTime(currentTime)}`}
+              />
+              <div className="flex items-center justify-between text-[10px] font-mono text-white/60 mt-1">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Playback Controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleMute}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? <VolumeX className="w-4 h-4 text-[#E98569]" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={isMuted ? 0 : volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="w-14 sm:w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#E98569]"
+                  title={`Volume: ${Math.round(volume * 100)}%`}
+                />
+              </div>
+
+              {/* Central Player Buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => seek(Math.max(0, currentTime - 10))}
+                  className="p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                  title="Rewind 10 seconds"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={togglePlay}
+                  className="w-12 h-12 rounded-full bg-[#E98569] hover:bg-[#E98569]/90 text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                  title={isPlaying ? "Pause soundtrack" : "Play soundtrack"}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-5 h-5 fill-white" />
+                  ) : (
+                    <Play className="w-5 h-5 fill-white ml-0.5" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => seek(Math.min(duration, currentTime + 10))}
+                  className="p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                  title="Forward 10 seconds"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="w-14 sm:w-16 text-right">
+                <span className="text-[10px] font-semibold text-white/50">
+                  {isPlaying ? "Playing" : "Paused"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Top Banner Row: Weather Advisory & Daily Quote */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Weather Module with Cold-Weather Phone Advisory */}
         <div className="lg:col-span-5 p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs relative overflow-hidden flex flex-col justify-between">
@@ -447,130 +685,68 @@ export function HomeView({
         </div>
       </div>
 
-      {/* 5. Bottom Split: Today's Priorities & The Prominent Aristotle Gucci Discipline Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Today's Priorities / Deliverables */}
-        <div className="lg:col-span-7 p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h3 className="font-heading font-bold text-sm text-[#252820] tracking-tight">
-                Operating Missions & Deliverables
-              </h3>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E98569]/15 text-[#E98569]">
-                Action Needed
-              </span>
-            </div>
-            <button
-              onClick={() => onNavigate("tasks")}
-              className="text-xs font-medium text-[#E98569] hover:underline"
-            >
-              Task manager
-            </button>
+      {/* 6. Today's Operating Missions & Priority Deliverables */}
+      <div className="p-5 rounded-2xl bg-white border border-[#E8E2D5] shadow-xs">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#E8E2D5]">
+          <div className="flex items-center gap-2">
+            <h3 className="font-heading font-bold text-sm text-[#252820] tracking-tight">
+              Operating Missions & Priority Deliverables
+            </h3>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E98569]/15 text-[#E98569]">
+              {overdueTasks.length} Action Needed
+            </span>
           </div>
-
-          <div className="space-y-2.5">
-            {overdueTasks.length > 0 ? (
-              overdueTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="p-3 rounded-xl bg-[#FCFAF6] border border-[#E8E2D5] flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={async () => {
-                        soundFx.playTaskComplete();
-                        await fetch("/api/tasks", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ id: task.id, status: "done" }),
-                        });
-                        fetchHomeData();
-                      }}
-                      className="w-5 h-5 rounded-md border border-[#D5CCBA] hover:border-[#769B83] hover:bg-[#769B83]/10 flex items-center justify-center transition-colors"
-                      title="Mark as done"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-transparent hover:text-[#769B83]" />
-                    </button>
-                    <div>
-                      <p className="text-xs font-semibold text-[#252820] leading-tight">
-                        {task.title}
-                      </p>
-                      <p className="text-[11px] text-[#5E6454] mt-0.5">
-                        {task.unit_name} • {task.notes || "Priority deliverable"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#E98569]/15 text-[#E98569] shrink-0">
-                    Overdue
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="p-6 text-center text-xs text-[#5E6454]">
-                All pending deliverables are up to date. Excellent operating rhythm.
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => onNavigate("tasks")}
+            className="text-xs font-medium text-[#E98569] hover:underline"
+          >
+            Open full task manager →
+          </button>
         </div>
 
-        {/* The Oracle of Discipline (Gucci Aristotle) - Prominent Feature */}
-        <div className="lg:col-span-5 p-6 rounded-3xl bg-[#FCFAF6] border-2 border-[#E8BC57]/60 shadow-md flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#E8BC57]/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#E8BC57]" />
-                <h3 className="font-heading font-extrabold text-xs uppercase tracking-wider text-[#252820]">
-                  The Oracle of Discipline
-                </h3>
-              </div>
-              <button
-                onClick={() =>
-                  setOracleIndex((prev) => (prev + 1) % oracleQuotes.length)
-                }
-                className="text-[11px] font-semibold text-[#252820] hover:bg-[#E8BC57]/20 px-3 py-1 rounded-full bg-white border border-[#E8BC57]/40 shadow-2xs transition-colors flex items-center gap-1.5"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {overdueTasks.length > 0 ? (
+            overdueTasks.map((task) => (
+              <div
+                key={task.id}
+                className="p-3.5 rounded-xl bg-[#FCFAF6] border border-[#E8E2D5] flex items-center justify-between gap-3 shadow-2xs"
               >
-                <Shuffle className="w-3 h-3 text-[#E8BC57]" />
-                <span>Next Counsel</span>
-              </button>
-            </div>
-
-            {/* Prominent Aristotle Gucci Portrait & Maxims */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 my-2">
-              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-3 border-[#E8BC57] shrink-0 shadow-md bg-[#E8E2D5] group">
-                <img
-                  src="/assets/dashboard/ARISTOLE GUCCI.jpg"
-                  alt="Aristotle Gucci"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/60 backdrop-blur-2xs text-[9px] font-bold text-center text-white uppercase tracking-wider">
-                  Aristotle Gucci
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={async () => {
+                      soundFx.playTaskComplete();
+                      await fetch("/api/tasks", {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: task.id, status: "done" }),
+                      });
+                      fetchHomeData();
+                    }}
+                    className="w-5 h-5 rounded-md border border-[#D5CCBA] hover:border-[#769B83] hover:bg-[#769B83]/10 flex items-center justify-center transition-colors"
+                    title="Mark as done"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-transparent hover:text-[#769B83]" />
+                  </button>
+                  <div>
+                    <p className="text-xs font-semibold text-[#252820] leading-tight">
+                      {task.title}
+                    </p>
+                    <p className="text-[11px] text-[#5E6454] mt-0.5">
+                      {task.unit_name} • {task.notes || "Priority deliverable"}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex-1 text-center sm:text-left">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8BC57] bg-[#E8BC57]/15 px-2 py-0.5 rounded-md">
-                  Founder Principle
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#E98569]/15 text-[#E98569] shrink-0">
+                  Overdue
                 </span>
-                <blockquote className="font-editorial italic text-sm sm:text-base text-[#252820] mt-2 leading-snug">
-                  “{oracleQuotes[oracleIndex]}”
-                </blockquote>
-                <p className="text-[11px] font-medium text-[#5E6454] mt-2">
-                  Operating Standard • Relentless Field Execution
-                </p>
               </div>
+            ))
+          ) : (
+            <div className="col-span-2 p-6 text-center text-xs text-[#5E6454]">
+              All pending deliverables are up to date. Excellent operating rhythm.
             </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-[#E8E2D5] text-[11px] text-[#5E6454] flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-[#E8BC57]" />
-              Executive Discipline Anchor
-            </span>
-            <span className="text-[#E98569] font-bold">Another day, another dollar</span>
-          </div>
+          )}
         </div>
       </div>
     </div>

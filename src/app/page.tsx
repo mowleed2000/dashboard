@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Sidebar, NavSection } from "@/components/Sidebar";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { AudioProvider } from "@/context/AudioContext";
 import { QuickCaptureModal } from "@/components/QuickCaptureModal";
 import { HomeView } from "@/components/views/HomeView";
 import { BusinessesView } from "@/components/views/BusinessesView";
@@ -49,7 +50,8 @@ export default function BusinessCommandApp() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F6F1E8] text-[#252820]">
+    <AudioProvider>
+      <div className="min-h-screen flex bg-[#F6F1E8] text-[#252820]">
       {/* Sidebar Navigation */}
       <Sidebar
         currentSection={currentSection}
@@ -173,5 +175,6 @@ export default function BusinessCommandApp() {
         onSuccess={fetchUnits}
       />
     </div>
+    </AudioProvider>
   );
 }
