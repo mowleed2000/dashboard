@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sqlite temporary runtime files
+*.db-wal
+*.db-shm
+*.db-journal
